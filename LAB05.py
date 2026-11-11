@@ -1,36 +1,75 @@
-class Student:
-    def __init__(self):
-        self.id = ""
-        self.name = ""
-        self.major = ""
-        self.courses = ""
-        self.gpa = 0.0
-    def add_stu(self):
-        self.id = input("Enter Student ID: ")
-        self.name = input("Enter Student Name: ")
-        self.major = input("Enter Major: ")
-        self.courses = input("Enter Courses: ")
-        self.gpa = float(input("Enter GPA: "))
-    def display_stu(self):
-        print("Student ID:", self.id)
-        print("Name:", self.name)
-        print("Major:", self.major)
-        print("Courses:", self.courses)
-        print("GPA:", self.gpa)
-class Faculty:
-    def __init__(self):
-        self.id = ""
-        self.name = ""
-        self.department = ""
-        self.courses_taught = ""
-    def add_fac(self):
-        self.id = input("Enter Faculty ID: ")
-        self.name = input("Enter Faculty Name: ")
-        self.department = input("Enter Department: ")
-        self.courses_taught = input("Enter Courses: ")
-    def display_fac(self):
-        print("Faculty ID:", self.id)
-        print("Name:", self.name)
-        print("Department:", self.department)
-        print("Courses taught:", self.courses_taught)
+import mysql.connector
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="StudentDB"
+)
+cursor = db.cursor()
+cursor.execute( """
+    CREATE TABLE IF NOT EXISTS Student (
+        StudentID INT PRIMARY KEY,
+        Name VARCHAR(50),
+        Department VARCHAR(50)
+    )
+""")
+print("Student table created successfully!")
 
+def insert_student():
+    sid = int(input("Enter Student ID: "))
+    name = input("Enter Name: ")
+    major = input("Enter Major: ")
+    courses = input("Enter Courses: ")
+    gpa = float(input("Enter GPA: "))
+    sql = "INSERT INTO Student VALUES (%s, %s, %s)"
+    values = (sid, name, major, courses, gpa)
+    cursor.execute(sql, values)
+    db.commit()
+    print("Record inserted successfully!")
+def display_student():
+    cursor.execute("SELECT * FROM Student")
+    for row in cursor.fetchall():
+        print(row)
+def update_stu():
+    sid = int(input("Enter Student ID: "))
+    name = input("Enter Name: ")
+    major = input("Enter Major: ")
+    courses = input("Enter Courses: ")
+    gpa = float(input("Enter GPA: "))
+    sql = """
+        UPDATE Student 
+        SET Name = %s Department = %s 
+        WHERE StudentID = %s
+    """
+    cursor.execute(sql, (name, major, sid, courses, gpa))
+    db.commit()
+    print("Record updated!" if cursor.rowcount else "Student not found!")
+def delete_stu():
+    sid = int(input("Enter Student ID: "))
+    sql = "DELETE FROM Student WHERE StudentID = %s"
+    cursor.execute(sql, (sid,))
+    db.commit()
+    print("Record deleted!" if cursor.rowcount else "Student not found!")
+#Main Menu
+while True:
+    print("\n1. Insert")
+    print("2. Display")
+    print("3. Update")
+    print("4. Delete")
+    print("5. Exit")
+    choice = input("Enter your choice: ")
+    if choice == "1":
+        insert_student()
+    elif choice == "2":
+        display_students()
+    elif choice == "3":
+        update_student()
+    elif choice == "4":
+        delete_student()
+    elif choice == "5":
+        break
+    else:
+        print("Invalid choice!")
+    cursor.close()
+    db.close()
+    print("Database connection closed.")
